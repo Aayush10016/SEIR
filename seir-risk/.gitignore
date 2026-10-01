@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Local only: docs, reports, figures, retired experiments
+local/
+
+# Trained models are outputs, rebuilt with `python -m scripts.train`
+models/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
