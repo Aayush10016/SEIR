@@ -1,0 +1,20 @@
+# Exact versions the shipped model was trained and tested with.
+# The predictor refuses to load a model if scikit-learn / xgboost / numpy differ (major.minor).
+#
+# Install:  pip install -r requirements.txt  &&  pip install -e .
+#
+# The project's evidence module (contracts + shared seir_features), from this repository.
+# Run pip from the seir-risk/ folder so the relative path resolves.
+-e ../seir-evidence
+
+numpy==2.5.3
+pandas==3.0.6
+pyarrow==25.0.1
+scikit-learn==1.7.2
+xgboost==3.0.5
+shap==0.52.0
+matplotlib==3.11.2
+joblib==1.6.0
+pydantic==2.13.5
+PyYAML==6.0.3
+pytest==9.1.1

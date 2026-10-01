@@ -1,0 +1,35 @@
+[project]
+name = "seir-risk"
+version = "0.1.0"
+description = "SEIR Risk Model (Member 3): change-risk prediction, calibration, SHAP explanations"
+requires-python = ">=3.11"
+# `seir-evidence` provides the shared contracts (RiskAssessment). It is installed
+# separately in editable mode (`pip install -e ../seir-evidence`), because pip
+# cannot express a relative local path dependency portably.
+dependencies = [
+    "pandas>=2.2",
+    "pyarrow>=15",
+    "numpy>=1.26",
+    "scikit-learn>=1.5,<1.8",
+    "xgboost>=2.1,<3.1",
+    "shap>=0.46",
+    "matplotlib>=3.8",
+    "joblib>=1.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# Only `risk` is code; models/ and reports/ are generated output.
+[tool.setuptools.packages.find]
+include = ["risk*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
