@@ -60,6 +60,11 @@ def build_report(df: pd.DataFrame, repo_stats: dict, feature_cols: list[str], fo
     return report
 
 
+def _count_with_share(count: int, total: int) -> str:
+    """'462 (65%)' — a count and its share of the row total."""
+    return f"{count} ({count / total:.0%})" if total else "0"
+
+
 def to_markdown(report: dict, manifest: dict) -> str:
     lines = [
         f"# Dataset quality report — {manifest['dataset_version']}",
@@ -79,8 +84,8 @@ def to_markdown(report: dict, manifest: dict) -> str:
     def label_rows(title: str, table: dict) -> None:
         lines.extend(["", f"## Labels by {title}", "", "| | LOW | MEDIUM | HIGH | total |", "|---|---|---|---|---|"])
         for key, row in table.items():
-            pct = lambda n: f"{n} ({n / row['total']:.0%})" if row["total"] else "0"
-            lines.append(f"| {key} | {pct(row['LOW'])} | {pct(row['MEDIUM'])} | {pct(row['HIGH'])} | {row['total']} |")
+            cells = " | ".join(_count_with_share(row[label], row["total"]) for label in LABEL_ORDER)
+            lines.append(f"| {key} | {cells} | {row['total']} |")
 
     label_rows("repository", report["labels_by_repo"])
     label_rows("split", report["labels_by_split"])

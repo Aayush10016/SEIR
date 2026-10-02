@@ -131,38 +131,55 @@ def _row(case: CandidateCase, label: str, fixes: list[str]) -> dict:
 
 
 def build_dataset(repos: list[RepoSpec | str], holdout_repos: set[str], settings: Settings, version: str) -> Path:
-    """`repos` may be RepoSpec objects or plain URLs (the original API, still used by
-    Member 3's `build_dataset_v2.py`); a plain URL means no cap and no pinned ref."""
-    repos = [spec if isinstance(spec, RepoSpec) else RepoSpec(spec) for spec in repos]
+    """Build every repository, split, and write all outputs to data/dataset/<version>/.
+
+    `repos` may be RepoSpec objects or plain URLs (the original API, kept for older
+    callers); a plain URL means no cap and no pinned commit.
+    """
+    specs = [spec if isinstance(spec, RepoSpec) else RepoSpec(spec) for spec in repos]
     out_dir = settings.data_dir / "dataset" / version
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    builds = {}
-    for spec in repos:
+    builds = []
+    for spec in specs:
         build = build_repository(spec.url, settings, spec.max_cases, spec.ref)
-        builds[spec.url] = build
         log.info("%s: %d cases kept", spec.url, build.stats["kept"])
+        builds.append(build)
 
-    df = pd.DataFrame([row for b in builds.values() for row in b.rows])
+    df = pd.DataFrame([row for build in builds for row in build.rows])
     df[SPLIT_COLUMN] = assign_splits(df, holdout_repos, settings.train_fraction, settings.validation_fraction)
     features = feature_columns()
     df = df[[*ID_COLUMNS, *features, *FORBIDDEN_COLUMNS, LABEL_COLUMN, SPLIT_COLUMN]]
-    df.to_parquet(out_dir / "cases.parquet", index=False)
+    repo_stats = {_repo_id(build): build.stats for build in builds}
 
+    _write_cases(out_dir, df, builds)
+    manifest = _manifest(version, features, holdout_repos, repo_stats, settings)
+    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    report = build_report(df, repo_stats, features, FORBIDDEN_COLUMNS)
+    (out_dir / "quality_report.json").write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+    (out_dir / "quality_report.md").write_text(to_markdown(report, manifest), encoding="utf-8")
+    return out_dir
+
+
+def _repo_id(build: RepoBuild) -> str:
+    return build.change_cases[0].repo_id if build.change_cases else build.stats["url"]
+
+
+def _write_cases(out_dir: Path, df: pd.DataFrame, builds: list[RepoBuild]) -> None:
+    """The training table, the same cases as ChangeCase records, and Member 4's request list."""
+    df.to_parquet(out_dir / "cases.parquet", index=False)
     with (out_dir / "change_cases.jsonl").open("w", encoding="utf-8") as handle:
-        for build in builds.values():
+        for build in builds:
             for case in build.change_cases:
                 handle.write(case.model_dump_json() + "\n")
-
     requests = df[["case_id", "repo_id", "parent_sha", "target_component_id", "target_parent_path", "as_of"]]
     requests.to_csv(out_dir / "static_feature_requests.csv", index=False)
 
-    repo_stats = {}
-    for build in builds.values():
-        repo_id = build.change_cases[0].repo_id if build.change_cases else build.stats["url"]
-        repo_stats[repo_id] = build.stats
 
-    manifest = {
+def _manifest(version: str, features: list[str], holdout_repos: set[str], repo_stats: dict,
+              settings: Settings) -> dict:
+    """Column roles, versions and settings: everything needed to use or reproduce the dataset."""
+    return {
         "dataset_version": version,
         "label_rule_version": LABEL_RULE_VERSION,
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -187,9 +204,3 @@ def build_dataset(repos: list[RepoSpec | str], holdout_repos: set[str], settings
         "notes": "Structural (STATIC) features are pending from Member 4; see static_feature_requests.csv. "
                  "config_config_reference_count counts RUNTIME configuration references at the pre-change snapshot.",
     }
-    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-
-    report = build_report(df, repo_stats, features, FORBIDDEN_COLUMNS)
-    (out_dir / "quality_report.json").write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
-    (out_dir / "quality_report.md").write_text(to_markdown(report, manifest), encoding="utf-8")
-    return out_dir

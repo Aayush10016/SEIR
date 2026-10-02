@@ -19,6 +19,10 @@ from collections import Counter
 YES, NO = "yes", "no"
 
 
+def ratio(part: int, whole: int) -> str:
+    return f"{part / whole:.1%} ({part}/{whole})" if whole else "n/a (no judged rows)"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("csv_files", nargs="+")
@@ -42,7 +46,6 @@ def main() -> None:
     judged = counts["resolved_yes"] + counts["resolved_no"]
     real = counts["resolved_yes"] + counts["missed_yes"]
     found = counts["seir_RESOLVED"] + counts["seir_UNRESOLVED"]
-    ratio = lambda a, b: f"{a / b:.1%} ({a}/{b})" if b else "n/a (no judged rows)"
     print(f"precision            {ratio(counts['resolved_yes'], judged)}")
     print(f"recall               {ratio(counts['resolved_yes'], real)}")
     print(f"false-reference rate {ratio(counts['resolved_no'], judged)}")

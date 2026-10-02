@@ -6,14 +6,20 @@ import pytest
 from app.collectors.git_history import GitHistoryIndex
 from app.collectors.git_log import read_history
 from app.config import Settings
-from app.dataset.cases import BULK_COMMIT, CENSORED, COSMETIC_COMMIT, NEW_COMPONENT, mine_cases
+from app.dataset.cases import (
+    BULK_COMMIT,
+    CENSORED,
+    COSMETIC_COMMIT,
+    NEW_COMPONENT,
+    mine_cases,
+)
 from app.dataset.features import feature_row
-from seir_features import ACTION_FEATURE
 from app.dataset.labels import assign_label
 from app.dataset.splits import HOLDOUT, TEST, TRAIN, VALIDATION, assign_splits
 from app.dataset.szz import faulty_lines, find_bug_inducing, to_ranges
 from app.inventory import list_components
 from app.schema import ChangeAction, RiskClass
+from seir_features import ACTION_FEATURE
 from tests.git_repo_builder import GitRepoBuilder, java
 
 T0 = datetime(2024, 1, 1, tzinfo=timezone.utc)

@@ -5,7 +5,13 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from app.schema import EXPORTED_CONTRACTS, ChangeCase, Component, EvidenceItem, RiskAssessment
+from app.schema import (
+    EXPORTED_CONTRACTS,
+    ChangeCase,
+    Component,
+    EvidenceItem,
+    RiskAssessment,
+)
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "contracts" / "examples"
 SHA = "a" * 40

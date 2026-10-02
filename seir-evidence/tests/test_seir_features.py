@@ -7,12 +7,17 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.collectors.config_files import ComponentResolver, build_config_evidence, scan_revision
+from app.collectors.config_files import (
+    ComponentResolver,
+    build_config_evidence,
+    scan_revision,
+)
 from app.collectors.git_history import GitHistoryIndex, build_git_evidence
 from app.collectors.git_log import read_history
 from app.config import Settings
 from app.inventory import list_components
 from app.schema import EVIDENCE_TYPES, EvidenceItem, Source
+from app.schema.evidence import MULTI_VALUED_EVIDENCE_TYPES as SCHEMA_MULTI_VALUED
 from seir_features import (
     ACTION_FEATURE,
     FEATURE_COLUMNS,
@@ -22,7 +27,6 @@ from seir_features import (
     evidence_to_features,
     to_vector,
 )
-from app.schema.evidence import MULTI_VALUED_EVIDENCE_TYPES as SCHEMA_MULTI_VALUED
 from tests.git_repo_builder import GitRepoBuilder, java
 
 BASE = dict(repo_id="acme/shop", snapshot="a" * 40, component_id="com.shop.Pay",

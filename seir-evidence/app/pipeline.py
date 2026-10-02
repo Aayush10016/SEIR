@@ -1,7 +1,7 @@
 """End-to-end evidence pipeline for one repository snapshot.
 
-Git history (Phase 2) and configuration (Phase 4); runtime evidence (Phase 5)
-plugs in here too, so the web service (Phase 6) only ever calls `analyze_repository`.
+Collects Git and configuration evidence; runtime evidence plugs in here too, so
+callers (scripts, the web service) only ever call `analyze_repository`.
 """
 
 import json
@@ -9,7 +9,13 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from app.collectors.config_files import ComponentResolver, ConfigScan, build_config_evidence, package_of, scan_revision
+from app.collectors.config_files import (
+    ComponentResolver,
+    ConfigScan,
+    build_config_evidence,
+    package_of,
+    scan_revision,
+)
 from app.collectors.git_history import GitHistoryIndex, build_co_change_edges, build_git_evidence
 from app.collectors.git_log import read_history
 from app.config import Settings
@@ -86,5 +92,6 @@ def analyze_repository(checkout: RepoCheckout, settings: Settings) -> AnalysisRe
         "config": config_scan.stats(),
         "as_of": as_of.isoformat(),
     }
-    return AnalysisResult(checkout.repo_id, checkout.snapshot, as_of, components, evidence, edges,
-                          config_scan, stats)
+    return AnalysisResult(
+        checkout.repo_id, checkout.snapshot, as_of, components, evidence, edges, config_scan, stats
+    )

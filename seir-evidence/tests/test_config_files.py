@@ -5,9 +5,9 @@ import pytest
 from app.collectors.config_files import (
     ComponentResolver,
     ConfigCategory,
+    RawToken,
     ReferenceKind,
     Resolution,
-    RawToken,
     build_config_evidence,
     classify_config_path,
     default_bean_name,
@@ -82,7 +82,11 @@ def test_scan_spring_xml():
 
 
 def test_scan_properties_and_yaml_comments():
-    props = "# spring.main.sources=com.acme.Old\nspring.jpa.naming=org.hibernate.Naming\nlogging.level.org.springframework=INFO\n"
+    props = (
+        "# spring.main.sources=com.acme.Old\n"
+        "spring.jpa.naming=org.hibernate.Naming\n"
+        "logging.level.org.springframework=INFO\n"
+    )
     assert [t.text for t in scan_text("application.properties", props)] == ["org.hibernate.Naming"]  # no packages
     yaml = "app:\n  handler: com.acme.Handler  # was com.acme.OldHandler\n"
     assert [(t.text, t.line) for t in scan_text("application.yml", yaml)] == [("com.acme.Handler", 2)]
@@ -94,7 +98,11 @@ def test_scan_service_loader_and_auto_configuration():
         ("com.acme.spi.Plugin", ReferenceKind.SERVICE_INTERFACE),
         ("com.acme.impl.FastPlugin", ReferenceKind.SERVICE_LOADER),
     }
-    factories = "org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\\n  com.acme.AutoConfig,\\\n  com.acme.OtherConfig\n"
+    factories = (
+        "org.springframework.boot.autoconfigure.EnableAutoConfiguration=\\\n"
+        "  com.acme.AutoConfig,\\\n"
+        "  com.acme.OtherConfig\n"
+    )
     kinds = {(t.text, t.kind) for t in scan_text("src/main/resources/META-INF/spring.factories", factories)}
     assert ("com.acme.AutoConfig", ReferenceKind.AUTO_CONFIGURATION) in kinds
     assert ("com.acme.OtherConfig", ReferenceKind.AUTO_CONFIGURATION) in kinds
