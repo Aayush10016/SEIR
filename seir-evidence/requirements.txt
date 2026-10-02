@@ -1,0 +1,8 @@
+# Exact versions this module was developed and tested with (same as seir-risk where shared).
+#
+# Install:  pip install -r requirements.txt  &&  pip install -e ".[dev]"
+pydantic==2.13.5
+pandas==3.0.6
+pyarrow==25.0.1
+PyYAML==6.0.3
+pytest==9.1.1
