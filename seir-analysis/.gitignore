@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+env/
+build/
+dist/
+
+# secrets / local config
+.env
+.env.*
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# generated analysis output (see README "graph --format json -o graph.json")
+/graph.json
